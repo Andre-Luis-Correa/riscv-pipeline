@@ -3,9 +3,16 @@ import java.util.Arrays;
 public class RiscVPipeline {
     // Registradores do pipeline
     private static String IFIDIR, IDEXIR, EXMEMIR, MEMWBIR;
-    private static int PC = 0; // Program Counter
-    private static int[] Regs = new int[32]; // Banco de registradores
-    private static int[] Memory = new int[256]; // Memória simulada
+
+    // Program Counter
+    private static int PC = 0;
+
+    // Banco de registradores
+    private static int[] Regs = new int[32];
+
+    // Memória simulada
+    private static int[] Memory = new int[256];
+
     private static int IDEXA, IDEXB, EXMEMALUOut, MEMWBValue;
 
     public static void main(String[] args) {
@@ -15,10 +22,10 @@ public class RiscVPipeline {
         // Conjunto de instruções em binário (simulando uma sequência)
         String[] instrucoes = {
                 "00000000001000110000100000110011", // add rd, rs1, rs2 (R-Type) -> add reg16, reg6, reg2
-                "00000000010000100000100010010011", // addi rd, rs1, 4 (I-Type) - addi reg17, rs4, 4
-                "00000000100001000000010001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg8, 8
+                "00000000010000100000100010010011", // addi rd, rs1, 4 (I-Type)  -> addi reg17, rs4, 4
+                "00000000100001000000010001100011", // beq rs1, rs2, L (B-Type)  -> beq reg8, reg8, 8
                 "00000000001000110000110010110011", // add rd, rs1, rs2 (R-Type) -> add reg25, reg6, reg2
-                "00000000001101010000001001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg3, 4
+                "00000000001101010000001001100011", // beq rs1, rs2, L (B-Type)  -> beq reg8, reg3, 4
                 "00000001111011100010001000100011"  // sw rs2, imm(rs1) (S-Type) -> sw reg30, 4(reg28)
         };
 

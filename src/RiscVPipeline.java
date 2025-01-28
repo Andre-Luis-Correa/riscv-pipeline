@@ -203,7 +203,7 @@ public class RiscVPipeline {
 
         // Simulação do pipeline por ciclos de clock
         for (int ciclo = 0; ciclo < instrucoes.length + 4; ciclo++) {
-            System.out.println("Ciclo: " + ciclo);
+            System.out.println("----> Ciclo: " + ciclo);
             writeBackStage();
             memoryAccessStage();
             executeStage();
@@ -352,6 +352,6 @@ public class RiscVPipeline {
         System.out.println("IDEXIR: " + IDEXIR + ", IDEXA: " + IDEXA + ", IDEXB: " + IDEXB);
         System.out.println("EXMEMIR: " + EXMEMIR + ", EXMEMALUOut: " + EXMEMALUOut);
         System.out.println("MEMWBIR: " + MEMWBIR + ", MEMWBValue: " + MEMWBValue);
-        System.out.println("======================================");
+        System.out.println("==============================================================================================\n");
     }
 }

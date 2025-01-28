@@ -24,6 +24,8 @@ public class RiscVPipeline {
         String[] instrucoes = {
                 "00000000001000110000100000110011", // add rd, rs1, rs2 (R-Type) -> add reg16, reg6, reg2
                 "00000000010000100000100010010011", // addi rd, rs1, 4 (I-Type) - addi reg17, rs4, 4
+                "00000000001101010000010001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg8, 8
+                "00000000001000110000110010110011", // add rd, rs1, rs2 (R-Type) -> add reg25, reg6, reg2
                 "00000000001101010000001001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg3, 4
                 "00000001111011100010001000100011"  // sw rs2, imm(rs1) (S-Type) -> sw reg30, 4(reg28)
         };

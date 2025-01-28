@@ -122,7 +122,7 @@ public class RiscVPipeline {
                     // Verifica se o branch é tomado
                     if (IDEXA == IDEXB) {
                         // Atualiza o PC para o endereço de salto
-                        PC += imm - 4; // O PC já foi incrementado no fetch
+                        PC += imm - 8; // O PC já foi incrementado no fetch
                         System.out.println("Branch tomado. Atualizando PC para: " + PC);
 
                         // Insere NOPs apenas nos estágios IF e ID para flush

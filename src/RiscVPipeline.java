@@ -8,6 +8,8 @@ public class RiscVPipeline {
     private static int[] Memory = new int[256]; // Memória simulada
     private static int IDEXA, IDEXB, EXMEMALUOut, MEMWBValue;
 
+    private static boolean branchTaken = false; // Controle de se o branch foi tomado
+
     public static void main(String[] args) {
         // Inicialização
         inicializarPipeline();
@@ -24,7 +26,7 @@ public class RiscVPipeline {
         String[] instrucoes = {
                 "00000000001000110000100000110011", // add rd, rs1, rs2 (R-Type) -> add reg16, reg6, reg2
                 "00000000010000100000100010010011", // addi rd, rs1, 4 (I-Type) - addi reg17, rs4, 4
-                "00000000001101010000010001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg8, 8
+                "00000000100001000000010001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg8, 8
                 "00000000001000110000110010110011", // add rd, rs1, rs2 (R-Type) -> add reg25, reg6, reg2
                 "00000000001101010000001001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg3, 4
                 "00000001111011100010001000100011"  // sw rs2, imm(rs1) (S-Type) -> sw reg30, 4(reg28)
@@ -49,13 +51,28 @@ public class RiscVPipeline {
         }
     }
 
-    // IF: Instruction Fetch
+//    // IF: Instruction Fetch
+//    private static void fetchStage(String[] instrucoes) {
+//        if (PC / 4 < instrucoes.length) {
+//            IFIDIR = instrucoes[PC / 4]; // Busca a instrução da memória
+//            PC += 4; // Incrementa o PC
+//        } else {
+//            IFIDIR = "NOP"; // Insere NOP após instruções
+//        }
+//    }
+
+    // Atualize o fetchStage para verificar se o branch foi tomado
     private static void fetchStage(String[] instrucoes) {
-        if (PC / 4 < instrucoes.length) {
-            IFIDIR = instrucoes[PC / 4]; // Busca a instrução da memória
-            PC += 4; // Incrementa o PC
+        if (branchTaken) {
+            IFIDIR = "NOP"; // Limpa a instrução no estágio IF
+            branchTaken = false; // Reseta a flag do branch
         } else {
-            IFIDIR = "NOP"; // Insere NOP após instruções
+            if (PC / 4 < instrucoes.length) {
+                IFIDIR = instrucoes[PC / 4];
+                PC += 4; // Incrementa o PC
+            } else {
+                IFIDIR = "NOP"; // Insere NOP após instruções
+            }
         }
     }
 
@@ -77,57 +94,105 @@ public class RiscVPipeline {
         }
     }
 
+//    // EX: Execute
+//    private static void executeStage() {
+//        if (!IDEXIR.equals("NOP")) {
+//            String opcode = IDEXIR.substring(25, 32); // Opcode
+//            int funct3 = Integer.parseInt(IDEXIR.substring(17, 20), 2); // Funct3
+//            int imm = 0; // Inicializamos o imediato
+//
+//            // Extrair imediato de acordo com o formato da instrução
+//            switch (opcode) {
+//                case "0110011": // R-Type (add) não usa imediato
+//                    EXMEMALUOut = IDEXA + IDEXB;
+//                    break;
+//
+//                case "0010011": // I-Type (addi)
+//                    // imm[11:0]
+//                    imm = Integer.parseInt(IDEXIR.substring(0, 12), 2);
+//                    if (IDEXIR.charAt(0) == '1') {
+//                        // Extensão de sinal para 32 bits
+//                        imm |= 0xFFFFF000;
+//                    }
+//                    EXMEMALUOut = IDEXA + imm;
+//                    break;
+//
+//                case "0100011": // S-Type (sw)
+//                    // imm[11:5] + imm[4:0]
+//                    int immHigh = Integer.parseInt(IDEXIR.substring(0, 7), 2); // imm[11:5]
+//                    int immLow = Integer.parseInt(IDEXIR.substring(20, 25), 2); // imm[4:0]
+//                    imm = (immHigh << 5) | immLow; // Combina as partes
+//                    if (IDEXIR.charAt(0) == '1') {
+//                        // Extensão de sinal para 32 bits
+//                        imm |= 0xFFFFF000;
+//                    }
+//                    EXMEMALUOut = IDEXA + imm; // Calcula endereço de memória
+//                    break;
+//
+//                case "1100011": // B-Type (beq)
+//                    // imm[12|10:5|4:1|11] << 1
+//                    int imm12 = Integer.parseInt(IDEXIR.substring(0, 1), 2); // imm[12]
+//                    int imm10_5 = Integer.parseInt(IDEXIR.substring(1, 7), 2); // imm[10:5]
+//                    int imm4_1 = Integer.parseInt(IDEXIR.substring(20, 24), 2); // imm[4:1]
+//                    int imm11 = Integer.parseInt(IDEXIR.substring(24, 25), 2); // imm[11]
+//                    imm = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);
+//                    if (IDEXIR.charAt(0) == '1') {
+//                        // Extensão de sinal para 32 bits
+//                        imm |= 0xFFFFF000;
+//                    }
+//                    System.out.println("O conteudo de " + IDEXA + " é igual a " + IDEXB);
+//                    if (IDEXA == IDEXB) {
+//                        System.out.println("O conteudo de " + IDEXA + " é igual a " + IDEXB);
+//                        PC += imm - 4; // Ajusta o PC (já incrementado no fetch)
+//                    }
+//                    break;
+//            }
+//            EXMEMIR = IDEXIR; // Passa a instrução adiante
+//        }
+//    }
+
     // EX: Execute
     private static void executeStage() {
         if (!IDEXIR.equals("NOP")) {
             String opcode = IDEXIR.substring(25, 32); // Opcode
-            int funct3 = Integer.parseInt(IDEXIR.substring(17, 20), 2); // Funct3
             int imm = 0; // Inicializamos o imediato
 
-            // Extrair imediato de acordo com o formato da instrução
+            // Lógica de execução de instruções
             switch (opcode) {
-                case "0110011": // R-Type (add) não usa imediato
+                case "0110011": // R-Type (add)
                     EXMEMALUOut = IDEXA + IDEXB;
                     break;
 
                 case "0010011": // I-Type (addi)
-                    // imm[11:0]
                     imm = Integer.parseInt(IDEXIR.substring(0, 12), 2);
-                    if (IDEXIR.charAt(0) == '1') {
-                        // Extensão de sinal para 32 bits
-                        imm |= 0xFFFFF000;
-                    }
+                    if (IDEXIR.charAt(0) == '1') imm |= 0xFFFFF000;
                     EXMEMALUOut = IDEXA + imm;
                     break;
 
                 case "0100011": // S-Type (sw)
-                    // imm[11:5] + imm[4:0]
                     int immHigh = Integer.parseInt(IDEXIR.substring(0, 7), 2); // imm[11:5]
                     int immLow = Integer.parseInt(IDEXIR.substring(20, 25), 2); // imm[4:0]
                     imm = (immHigh << 5) | immLow; // Combina as partes
-                    if (IDEXIR.charAt(0) == '1') {
-                        // Extensão de sinal para 32 bits
-                        imm |= 0xFFFFF000;
-                    }
-                    EXMEMALUOut = IDEXA + imm; // Calcula endereço de memória
+                    if (IDEXIR.charAt(0) == '1') imm |= 0xFFFFF000;
+                    EXMEMALUOut = IDEXA + imm;
                     break;
 
                 case "1100011": // B-Type (beq)
-                    // imm[12|10:5|4:1|11] << 1
-                    int imm12 = Integer.parseInt(IDEXIR.substring(0, 1), 2); // imm[12]
-                    int imm10_5 = Integer.parseInt(IDEXIR.substring(1, 7), 2); // imm[10:5]
-                    int imm4_1 = Integer.parseInt(IDEXIR.substring(20, 24), 2); // imm[4:1]
-                    int imm11 = Integer.parseInt(IDEXIR.substring(24, 25), 2); // imm[11]
+                    int imm12 = Integer.parseInt(IDEXIR.substring(0, 1), 2);
+                    int imm10_5 = Integer.parseInt(IDEXIR.substring(1, 7), 2);
+                    int imm4_1 = Integer.parseInt(IDEXIR.substring(20, 24), 2);
+                    int imm11 = Integer.parseInt(IDEXIR.substring(24, 25), 2);
                     imm = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);
-                    if (IDEXIR.charAt(0) == '1') {
-                        // Extensão de sinal para 32 bits
-                        imm |= 0xFFFFF000;
-                    }
+                    if (IDEXIR.charAt(0) == '1') imm |= 0xFFFFF000;
+
+                    // Verificação do branch
                     if (IDEXA == IDEXB) {
-                        PC += imm - 4; // Ajusta o PC (já incrementado no fetch)
+                        PC += imm - 4; // Ajusta o PC
+                        branchTaken = true; // Marca que o branch foi tomado
                     }
                     break;
             }
+
             EXMEMIR = IDEXIR; // Passa a instrução adiante
         }
     }

@@ -12,12 +12,20 @@ public class RiscVPipeline {
         // Inicialização
         inicializarPipeline();
 
+//        // Conjunto de instruções em binário (simulando uma sequência)
+//        String[] instrucoes = {
+//                "0000000 00010 00110 000 10000 0110011", // add rd, rs1, rs2 (R-Type) -> add reg16, reg6, reg2
+//                "000000000100 00100 000 10001 0010011", // addi rd, rs1, 4 (I-Type) - addi reg17, rs4, 4
+//                "0 000000 00011 01010 000 0010 0 1100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg3, 4
+//                "0000000 11110 11100 010 0010 0 0100011"  // sw rs2, imm(rs1) (S-Type) -> sw reg30, 4(reg28)
+//        };
+
         // Conjunto de instruções em binário (simulando uma sequência)
         String[] instrucoes = {
-                "00000000001000110000100000110011", // add rd, rs1, rs2 (R-Type) -> add reg1, reg6, reg2
-                "00000000010000100001100010010011", // addi r3, r2, 4 (I-Type)
-                "00000000001100010001000001100011", // beq r1, r3, 4 (B-Type)
-                "00000000001100100001001000100011"  // sw r3, 4(r2) (S-Type)
+                "00000000001000110000100000110011", // add rd, rs1, rs2 (R-Type) -> add reg16, reg6, reg2
+                "00000000010000100000100010010011", // addi rd, rs1, 4 (I-Type) - addi reg17, rs4, 4
+                "00000000001101010000001001100011", // beq rs1, rs2, L (B-Type) -> beq reg8, reg3, 4
+                "00000001111011100010001000100011"  // sw rs2, imm(rs1) (S-Type) -> sw reg30, 4(reg28)
         };
 
         // Simulação do pipeline por ciclos de clock

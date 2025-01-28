@@ -82,22 +82,50 @@ public class RiscVPipeline {
         if (!IDEXIR.equals("NOP")) {
             String opcode = IDEXIR.substring(25, 32); // Opcode
             int funct3 = Integer.parseInt(IDEXIR.substring(17, 20), 2); // Funct3
-            int imm = Integer.parseInt(IDEXIR.substring(0, 12), 2); // Imediato
+            int imm = 0; // Inicializamos o imediato
 
+            // Extrair imediato de acordo com o formato da instrução
             switch (opcode) {
-                case "0110011": // R-Type (add)
+                case "0110011": // R-Type (add) não usa imediato
                     EXMEMALUOut = IDEXA + IDEXB;
                     break;
+
                 case "0010011": // I-Type (addi)
+                    // imm[11:0]
+                    imm = Integer.parseInt(IDEXIR.substring(0, 12), 2);
+                    if (IDEXIR.charAt(0) == '1') {
+                        // Extensão de sinal para 32 bits
+                        imm |= 0xFFFFF000;
+                    }
                     EXMEMALUOut = IDEXA + imm;
                     break;
+
+                case "0100011": // S-Type (sw)
+                    // imm[11:5] + imm[4:0]
+                    int immHigh = Integer.parseInt(IDEXIR.substring(0, 7), 2); // imm[11:5]
+                    int immLow = Integer.parseInt(IDEXIR.substring(20, 25), 2); // imm[4:0]
+                    imm = (immHigh << 5) | immLow; // Combina as partes
+                    if (IDEXIR.charAt(0) == '1') {
+                        // Extensão de sinal para 32 bits
+                        imm |= 0xFFFFF000;
+                    }
+                    EXMEMALUOut = IDEXA + imm; // Calcula endereço de memória
+                    break;
+
                 case "1100011": // B-Type (beq)
+                    // imm[12|10:5|4:1|11] << 1
+                    int imm12 = Integer.parseInt(IDEXIR.substring(0, 1), 2); // imm[12]
+                    int imm10_5 = Integer.parseInt(IDEXIR.substring(1, 7), 2); // imm[10:5]
+                    int imm4_1 = Integer.parseInt(IDEXIR.substring(20, 24), 2); // imm[4:1]
+                    int imm11 = Integer.parseInt(IDEXIR.substring(24, 25), 2); // imm[11]
+                    imm = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);
+                    if (IDEXIR.charAt(0) == '1') {
+                        // Extensão de sinal para 32 bits
+                        imm |= 0xFFFFF000;
+                    }
                     if (IDEXA == IDEXB) {
                         PC += imm - 4; // Ajusta o PC (já incrementado no fetch)
                     }
-                    break;
-                case "0100011": // S-Type (sw)
-                    EXMEMALUOut = IDEXA + imm; // Calcula endereço
                     break;
             }
             EXMEMIR = IDEXIR; // Passa a instrução adiante
